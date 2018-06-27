@@ -1,0 +1,3 @@
+-r test/client/ts-node.helper.js
+--require ./test/client/helpers/setup.ts
+src/client/**/*.spec.ts
