@@ -23,7 +23,8 @@ export class NodeLogger implements Logger {
 
     public static get mainLogger() {
         if (!this._mainLogger) {
-            throw new Error("Main logger has not been set yet. Call NodeLogger.mainLogger = myLogger");
+            return null;
+            // throw new Error("Main logger has not been set yet. Call NodeLogger.mainLogger = myLogger");
         }
         return this._mainLogger;
     }

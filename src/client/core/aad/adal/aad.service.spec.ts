@@ -1,8 +1,9 @@
 import * as moment from "moment";
 
 import { AccessToken } from "@batch-flask/core";
-import { localStorage } from "client/core/local-storage";
+import { expect } from "chai";
 import { Constants } from "common";
+import * as sinon from "sinon";
 import { F } from "test/utils";
 import { mockNodeStorage } from "test/utils/mocks/storage";
 import { MockBrowserWindow, MockSplashScreen } from "test/utils/mocks/windows";
@@ -43,6 +44,7 @@ describe("AADService", () => {
             mainWindow: new MockBrowserWindow(),
             splashScreen: new MockSplashScreen(),
         };
+        const localStorage: any = {};
         mockNodeStorage(localStorage);
         service = new AADService(appSpy);
         service.currentUser.subscribe(x => currentUser = x);
@@ -55,7 +57,7 @@ describe("AADService", () => {
         tmpService.init();
         let user: AADUser = null;
         tmpService.currentUser.subscribe(x => user = x);
-        expect(user).toBeNull();
+        expect(user).to.be.null;
     });
 
     it("when localstorage has currentUser it should load it", async (done) => {
@@ -64,16 +66,16 @@ describe("AADService", () => {
         await tmpService.init();
         let user: AADUser = null;
         tmpService.currentUser.subscribe(x => user = x);
-        expect(user).not.toBeNull();
-        expect(user.upn).toEqual("frank.smith@example.com");
+        expect(user).not.to.be.null;
+        expect(user.upn).to.equal("frank.smith@example.com");
         done();
     });
 
     describe("accessTokenData", () => {
-        let authorizeSpy: jasmine.Spy;
-        let refreshSpy: jasmine.Spy;
-        let redeemSpy: jasmine.Spy;
-        let decodeSpy: jasmine.Spy;
+        let authorizeSpy: sinon.SinonSpy;
+        let refreshSpy: sinon.SinonSpy;
+        let redeemSpy: sinon.SinonSpy;
+        let decodeSpy: sinon.SinonSpy;
         let refreshedToken;
         let newToken;
         let token: AccessToken;
@@ -88,10 +90,10 @@ describe("AADService", () => {
                 code: "somecode",
             };
 
-            refreshSpy = jasmine.createSpy("refreshSpy").and.returnValue(Promise.resolve(refreshedToken));
-            redeemSpy = jasmine.createSpy("redeemSpy").and.returnValue(Promise.resolve(newToken));
-            authorizeSpy = jasmine.createSpy("authorizeSpy").and.returnValue(Promise.resolve(authorizeResult));
-            decodeSpy = jasmine.createSpy("decodeSpy").and.returnValue(sampleUser);
+            refreshSpy = sinon.fake.returns(Promise.resolve(refreshedToken));
+            redeemSpy = sinon.fake.returns(Promise.resolve(newToken));
+            authorizeSpy = sinon.fake.returns(Promise.resolve(authorizeResult));
+            decodeSpy = sinon.fake.returns(sampleUser);
 
             (service as any)._accessTokenService.refresh = refreshSpy;
             (service as any)._accessTokenService.redeem = redeemSpy;
@@ -105,8 +107,8 @@ describe("AADService", () => {
                 expires_on: moment().add(1, "hour"),
             } as any));
             token = await service.accessTokenData(tenant1, resource1);
-            expect(token).not.toBeNull();
-            expect(token.access_token).toEqual("initialtoken");
+            expect(token).not.to.be.null;
+            expect(token.access_token).to.equal("initialtoken");
         }));
 
         it("should reload a new token if the token is expiring before the safe margin", F(async () => {
@@ -116,12 +118,12 @@ describe("AADService", () => {
                 refresh_token: "somerefreshtoken",
             } as any));
             token = await service.accessTokenData(tenant1, resource1);
-            expect(redeemSpy).not.toHaveBeenCalled();
-            expect(refreshSpy).toHaveBeenCalledTimes(1);
-            expect(refreshSpy).toHaveBeenCalledWith(resource1, tenant1, "somerefreshtoken");
+            expect(redeemSpy).not.to.have.been.called;
+            expect(refreshSpy).to.have.been.calledOnce;
+            expect(refreshSpy).to.have.been.calledWith(resource1, tenant1, "somerefreshtoken");
 
-            expect(token).not.toBeNull();
-            expect(token.access_token).toEqual("refreshedToken");
+            expect(token).not.to.be.null;
+            expect(token.access_token).to.equal("refreshedToken");
         }));
 
         it("should load a new token if getting a token for another resource", async (done) => {
@@ -130,12 +132,12 @@ describe("AADService", () => {
                 expires_on: moment().add(1, "hour"),
             } as any));
             token = await service.accessTokenData(tenant1, "http://other-resource.com");
-            expect(redeemSpy).toHaveBeenCalled();
-            expect(redeemSpy).toHaveBeenCalledWith("http://other-resource.com", tenant1, "somecode");
-            expect(refreshSpy).not.toHaveBeenCalled();
+            expect(redeemSpy).to.have.been.called;
+            expect(redeemSpy).to.have.been.calledWith("http://other-resource.com", tenant1, "somecode");
+            expect(refreshSpy).not.to.have.been.called;
 
-            expect(token).not.toBeNull();
-            expect(token.access_token).toEqual("newToken");
+            expect(token).not.to.be.null;
+            expect(token.access_token).to.equal("newToken");
             done();
         });
 
@@ -145,12 +147,12 @@ describe("AADService", () => {
                 expires_on: moment().add(1, "hour"),
             } as any));
             token = await service.accessTokenData("tenant-2", resource1);
-            expect(redeemSpy).toHaveBeenCalled();
-            expect(redeemSpy).toHaveBeenCalledWith(resource1, "tenant-2", "somecode");
-            expect(refreshSpy).not.toHaveBeenCalled();
+            expect(redeemSpy).to.have.been.called;
+            expect(redeemSpy).to.have.been.calledWith(resource1, "tenant-2", "somecode");
+            expect(refreshSpy).not.to.have.been.called;
 
-            expect(token).not.toBeNull();
-            expect(token.access_token).toEqual("newToken");
+            expect(token).not.to.be.null;
+            expect(token.access_token).to.equal("newToken");
             done();
         });
 
@@ -161,22 +163,22 @@ describe("AADService", () => {
             });
 
             it("should authorize the user", () => {
-                expect(authorizeSpy).toHaveBeenCalledTimes(1);
-                expect(decodeSpy).toHaveBeenCalledTimes(1);
-                expect(decodeSpy).toHaveBeenCalledWith("someidtoken");
+                expect(authorizeSpy).to.have.been.calledOnce;
+                expect(decodeSpy).to.have.been.called.calledOnce;
+                expect(decodeSpy).to.have.been.calledWith("someidtoken");
             });
 
             it("should save the user inside localStorage", async (done) => {
                 const data = await localStorage.getItem(Constants.localStorageKey.currentUser);
-                expect(data).toEqual(JSON.stringify(sampleUser));
+                expect(data).to.equal(JSON.stringify(sampleUser));
                 done();
             });
 
             it("should redeem a new token", () => {
-                expect(refreshSpy).not.toHaveBeenCalled();
-                expect(redeemSpy).toHaveBeenCalledTimes(1);
-                expect(redeemSpy).toHaveBeenCalledWith(resource1, tenant1, "somecode");
-                expect(token.access_token).toEqual("newToken");
+                expect(refreshSpy).not.to.have.been.called;
+                expect(redeemSpy).to.have.been.calledOnce;
+                expect(redeemSpy).to.have.been.calledWith(resource1, tenant1, "somecode");
+                expect(token.access_token).to.equal("newToken");
             });
         });
 

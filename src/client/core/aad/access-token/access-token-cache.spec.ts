@@ -1,8 +1,8 @@
-import * as moment from "moment";
-
 import { AccessToken } from "@batch-flask/core";
-import { localStorage } from "client/core/local-storage";
+import { expect } from "chai";
+// import { localStorage } from "client/core/local-storage";
 import { Constants } from "common";
+import * as moment from "moment";
 import { mockNodeStorage } from "test/utils/mocks/storage";
 import { AccessTokenCache } from "./access-token-cache";
 
@@ -23,6 +23,7 @@ describe("AccessTokenCache", () => {
 
     describe("when using localstorage", () => {
         beforeEach(() => {
+            const localStorage: any = {};
             mockNodeStorage(localStorage);
             cache = new AccessTokenCache(localStorage);
         });
@@ -30,7 +31,7 @@ describe("AccessTokenCache", () => {
         it("doesn't set the access token if not in localstorage", () => {
             localStorage.removeItem(Constants.localStorageKey.currentAccessToken);
             cache.init();
-            expect((cache as any)._tokens).toEqual({});
+            expect((cache as any)._tokens).to.equal({});
         });
 
         it("if token in local storage is expired it doesn't set it", () => {
@@ -41,7 +42,7 @@ describe("AccessTokenCache", () => {
             };
             localStorage.setItem(Constants.localStorageKey.currentAccessToken, JSON.stringify(token));
             cache.init();
-            expect(cache.getToken(tenant1, resource1)).toBeFalsy();
+            expect(cache.getToken(tenant1, resource1)).to.be.false;
         });
 
         it("should load the token from local storage if present and not expired", async (done) => {
@@ -53,8 +54,8 @@ describe("AccessTokenCache", () => {
             localStorage.setItem(Constants.localStorageKey.currentAccessToken, JSON.stringify(data));
             await cache.init();
             const token = cache.getToken(tenant1, resource1);
-            expect(token).not.toBeFalsy();
-            expect(token.access_token).toEqual("sometoken");
+            expect(token).not.to.be.false;
+            expect(token.access_token).to.equal("sometoken");
             done();
         });
     });
@@ -65,13 +66,13 @@ describe("AccessTokenCache", () => {
         });
 
         it("save and retrieve tokens", () => {
-            expect(cache.getToken(tenant1, resource1)).toBeUndefined();
+            expect(cache.getToken(tenant1, resource1)).to.be.undefined;
             const token = new AccessToken(token1);
             cache.storeToken(tenant1, resource1, token);
-            expect(cache.getToken(tenant1, resource1)).toEqual(token);
+            expect(cache.getToken(tenant1, resource1)).to.equal(token);
 
             cache.clear();
-            expect(cache.getToken(tenant1, resource1)).toBeUndefined();
+            expect(cache.getToken(tenant1, resource1)).to.be.undefined;
         });
     });
 });

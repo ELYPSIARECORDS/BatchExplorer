@@ -1,3 +1,4 @@
+import { expect } from "chai";
 import * as core from "../core/subprocess";
 import * as pythonExecutable from "./python-executable";
 
@@ -19,10 +20,10 @@ describe("python-executable", () => {
 
         const options = ["/custom/path/python", "python3", "python", "otherPython"];
         pythonExecutable.tryMultiplePythons(options).then((path) => {
-            expect(path).toBe("python");
+            expect(path).to.eql("python");
             done();
         }).catch((e) => {
-            expect(false).toBe(true, `Should not have an error ${e.message}`);
+            expect.fail(`Should not have an error ${e.message}`);
             done();
         });
     });
