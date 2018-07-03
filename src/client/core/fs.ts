@@ -1,3 +1,4 @@
+import { Injectable } from "@angular/core";
 import { log } from "@batch-flask/utils";
 import * as chokidar from "chokidar";
 import { FileUtils } from "client/api";
@@ -11,19 +12,23 @@ export interface CommonFolders {
     downloads: string;
     appData: string;
     userData: string;
+    home: string;
 }
 
-const fileUtils = new FileUtils();
+@Injectable()
 export class FileSystem {
     public commonFolders: CommonFolders;
+    private _fileUtils: FileUtils;
 
     constructor() {
+        this._fileUtils = new FileUtils();
         if (process.env.NODE_ENV !== "test") { // App is not defined in the test
             this.commonFolders = {
                 temp: path.join(app.getPath("temp"), "batch-labs"),
                 downloads: app.getPath("downloads"),
                 appData: app.getPath("appData"),
                 userData: app.getPath("userData"),
+                home: app.getPath("home"),
             };
         }
     }
@@ -78,7 +83,7 @@ export class FileSystem {
 
     public download(source: string, dest: string): Promise<string> {
         return this.ensureDir(path.dirname(dest)).then(() => {
-            return fileUtils.download(source, dest);
+            return this._fileUtils.download(source, dest);
         });
     }
 
@@ -88,7 +93,7 @@ export class FileSystem {
      * @param dest Folder where the zip file should be extracted
      */
     public unzip(source: string, dest: string): Promise<void> {
-        return fileUtils.unzip(source, dest);
+        return this._fileUtils.unzip(source, dest);
     }
 
     public async lstat(path: string): Promise<fs.Stats> {
