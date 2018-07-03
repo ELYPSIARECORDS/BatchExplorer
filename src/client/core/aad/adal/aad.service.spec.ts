@@ -64,7 +64,7 @@ describe("AADService", () => {
         expect(user).to.be.null;
     });
 
-    it("when localstorage has currentUser it should load it", async (done) => {
+    it("when localstorage has currentUser it should load it", async () => {
         await localStorage.setItem(Constants.localStorageKey.currentUser, JSON.stringify(sampleUser));
         const tmpService = new AADService(appSpy, localStorage, ipcMainMock);
         await tmpService.init();
@@ -72,7 +72,6 @@ describe("AADService", () => {
         tmpService.currentUser.subscribe(x => user = x);
         expect(user).not.to.be.null;
         expect(user.upn).to.equal("frank.smith@example.com");
-        done();
     });
 
     describe("accessTokenData", () => {
@@ -105,7 +104,7 @@ describe("AADService", () => {
             (service as any)._userDecoder.decode = decodeSpy;
         });
 
-        it("should use the cached token if not expired", F(async () => {
+        it("should use the cached token if not expired", async () => {
             (service as any)._tokenCache.storeToken(tenant1, resource1, new AccessToken({
                 access_token: "initialtoken",
                 expires_on: moment().add(1, "hour"),
@@ -113,9 +112,9 @@ describe("AADService", () => {
             token = await service.accessTokenData(tenant1, resource1);
             expect(token).not.to.be.null;
             expect(token.access_token).to.equal("initialtoken");
-        }));
+        });
 
-        it("should reload a new token if the token is expiring before the safe margin", F(async () => {
+        it("should reload a new token if the token is expiring before the safe margin", async () => {
             (service as any)._tokenCache.storeToken(tenant1, resource1, new AccessToken({
                 access_token: "initialtoken",
                 expires_on: moment().add(1, "minute").toDate(),
@@ -128,9 +127,9 @@ describe("AADService", () => {
 
             expect(token).not.to.be.null;
             expect(token.access_token).to.equal("refreshedToken");
-        }));
+        });
 
-        it("should load a new token if getting a token for another resource", async (done) => {
+        it("should load a new token if getting a token for another resource", async () => {
             (service as any)._tokenCache.storeToken(tenant1, resource1, new AccessToken({
                 access_token: "initialtoken",
                 expires_on: moment().add(1, "hour"),
@@ -142,10 +141,9 @@ describe("AADService", () => {
 
             expect(token).not.to.be.null;
             expect(token.access_token).to.equal("newToken");
-            done();
         });
 
-        it("should load a new token if getting a token for another tenant", async (done) => {
+        it("should load a new token if getting a token for another tenant", async () => {
             (service as any)._tokenCache.storeToken(tenant1, resource1, new AccessToken({
                 access_token: "initialtoken",
                 expires_on: moment().add(1, "hour"),
@@ -157,13 +155,11 @@ describe("AADService", () => {
 
             expect(token).not.to.be.null;
             expect(token.access_token).to.equal("newToken");
-            done();
         });
 
         describe("when there is no token cached", () => {
-            beforeEach(async (done) => {
+            beforeEach(async () => {
                 token = await service.accessTokenData(tenant1, resource1);
-                done();
             });
 
             it("should authorize the user", () => {
@@ -172,10 +168,9 @@ describe("AADService", () => {
                 expect(decodeSpy).to.have.been.calledWith("someidtoken");
             });
 
-            it("should save the user inside localStorage", async (done) => {
+            it("should save the user inside localStorage", async () => {
                 const data = await localStorage.getItem(Constants.localStorageKey.currentUser);
                 expect(data).to.equal(JSON.stringify(sampleUser));
-                done();
             });
 
             it("should redeem a new token", () => {

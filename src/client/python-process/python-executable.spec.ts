@@ -1,11 +1,11 @@
 import { expect } from "chai";
+import * as sinon from "sinon";
 import * as core from "../core/subprocess";
 import * as pythonExecutable from "./python-executable";
 
 describe("python-executable", () => {
-
     it("try multiple python should find the right version", (done) => {
-        (core as any).execCommand = jasmine.createSpy("execCommand").and.callFake((command) => {
+        (core as any).execCommand = sinon.fake((command) => {
             switch (command) {
                 case "/custom/path/python --version":
                     return Promise.reject("Not found command");

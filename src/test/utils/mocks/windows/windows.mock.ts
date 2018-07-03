@@ -1,18 +1,19 @@
 import { Subject } from "rxjs";
+import * as sinon from "sinon";
 
 export class MockBrowserWindow {
-    public destroy: jasmine.Spy;
-    public loadURL: jasmine.Spy;
-    public on: jasmine.Spy;
-    public webContents: { on: jasmine.Spy, notify: (...args) => void };
+    public destroy: sinon.SinonSpy;
+    public loadURL: sinon.SinonSpy;
+    public on: sinon.SinonSpy;
+    public webContents: { on: sinon.SinonSpy, notify: (...args) => void };
 
     private _isVisible = false;
     private _events: { [key: string]: Subject<any> } = {};
 
     constructor() {
-        this.destroy = jasmine.createSpy("destroy");
-        this.loadURL = jasmine.createSpy("loadURL");
-        this.on = jasmine.createSpy("on").and.callFake((event: string, callback: (...args) => void) => {
+        this.destroy = sinon.fake();
+        this.loadURL = sinon.fake();
+        this.on = sinon.fake((event: string, callback: (...args) => void) => {
             if (!(event in this._events)) {
                 this._events[event] = new Subject();
             }
@@ -21,7 +22,7 @@ export class MockBrowserWindow {
             });
         });
         this.webContents = {
-            on: jasmine.createSpy("webcontents.on").and.callFake((event: string, callback: (...args) => void) => {
+            on: sinon.fake((event: string, callback: (...args) => void) => {
                 this.on(`webcontents.${event}`, callback);
             }),
             notify: (event: string, data: any) => {
@@ -54,17 +55,17 @@ export class MockBrowserWindow {
 }
 
 export class MockUniqueWindow {
-    public create: jasmine.Spy;
-    public show: jasmine.Spy;
-    public hide: jasmine.Spy;
-    public destroy: jasmine.Spy;
+    public create: sinon.SinonSpy;
+    public show: sinon.SinonSpy;
+    public hide: sinon.SinonSpy;
+    public destroy: sinon.SinonSpy;
     private _visible: boolean = false;
 
     constructor() {
-        this.create = jasmine.createSpy("create");
-        this.show = jasmine.createSpy("show").and.callFake(() => this._visible = true);
-        this.hide = jasmine.createSpy("hide").and.callFake(() => this._visible = false);
-        this.destroy = jasmine.createSpy("destroy");
+        this.create = sinon.fake();
+        this.show = sinon.fake(() => this._visible = true);
+        this.hide = sinon.fake(() => this._visible = false);
+        this.destroy = sinon.fake();
     }
 
     public isVisible() {
@@ -76,7 +77,7 @@ export class MockSplashScreen extends MockUniqueWindow {
 }
 
 export class MockAuthenticationWindow extends MockUniqueWindow {
-    public loadURL: jasmine.Spy;
+    public loadURL: sinon.SinonSpy;
     private _onRedirectCallbacks = [];
     private _onNavigateCallbacks = [];
     private _onCloseCallbacks = [];
@@ -84,8 +85,8 @@ export class MockAuthenticationWindow extends MockUniqueWindow {
     constructor() {
         super();
 
-        this.loadURL = jasmine.createSpy("loadURL");
-        this.destroy = this.destroy.and.callFake(() => {
+        this.loadURL =  sinon.fake();
+        this.destroy =  sinon.fake(() => {
             this._onRedirectCallbacks = [];
             this._onNavigateCallbacks = [];
             this._onCloseCallbacks = [];

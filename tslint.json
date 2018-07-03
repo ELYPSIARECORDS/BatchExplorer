@@ -1,9 +1,11 @@
 {
-  "extends": "tslint:recommended",
+  "extends": [
+    "tslint:recommended",
+  ],
   "defaultSeverity": "error",
   "rulesDirectory": [
     "node_modules/codelyzer",
-    // "node_modules/rxjs-tslint",
+    "tslint-no-unused-expression-chai",
     "scripts/tslint"
   ],
   "rules": {
@@ -79,8 +81,10 @@
     "import-destructuring-spacing": true,
     "no-shadowed-variable": false,
     "trackBy-function": true,
-    "banana-in-box": true
+    "banana-in-box": true,
 
+    "no-unused-expression": false,
+    "no-unused-expression-chai": true
     // Rxjs
     // "rxjs-collapse-imports": true,
     // "rxjs-pipeable-operators-only": true,
