@@ -38,7 +38,8 @@
       "node",
       "electron",
       "jasmine",
-      "hammerjs"
+      "hammerjs",
+      "sinon-chai",
     ],
     "typeRoots": [
       "node_modules/@types"

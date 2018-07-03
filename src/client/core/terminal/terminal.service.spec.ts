@@ -1,6 +1,8 @@
 import { Platform } from "@batch-flask/utils";
+import { expect } from "chai";
 import * as cp from "child_process";
 import * as process from "process";
+import * as sinon from "sinon";
 import { TerminalService } from "./terminal.service";
 
 describe("TerminalService", () => {
@@ -8,14 +10,14 @@ describe("TerminalService", () => {
     let osServiceSpy;
     let fsServiceSpy;
     let spawnTmp;
-    let spawnSpy: jasmine.Spy;
+    let spawnSpy: sinon.SinonSpy;
     let platform: Platform;
     let isDebian;
     let ipcMainSpy;
     const envTemp = process.env;
 
     beforeEach(() => {
-        spawnSpy = jasmine.createSpy("spawn").and.callFake((exe, args) => {
+        spawnSpy = sinon.fake((exe, args) => {
             return {
                 pid: 1234,
                 once: () => null,
@@ -23,14 +25,14 @@ describe("TerminalService", () => {
         });
         spawnTmp = cp.spawn;
         (cp as any).spawn = spawnSpy;
-        osServiceSpy =  {
+        osServiceSpy = {
             platform: "",
             isWindows: () => platform === Platform.Windows,
-            isLinux: () => platform === Platform.Linux ,
-            isOSX: () => platform === Platform.OSX ,
+            isLinux: () => platform === Platform.Linux,
+            isOSX: () => platform === Platform.OSX,
         };
         fsServiceSpy = {
-            exists: jasmine.createSpy("exists").and.callFake((filename) => {
+            exists: sinon.fake((filename) => {
                 if (filename === "/etc/debian_version") {
                     return isDebian;
                 } else {
@@ -39,7 +41,7 @@ describe("TerminalService", () => {
             }),
         };
 
-        ipcMainSpy =  {
+        ipcMainSpy = {
             on: () => null,
         };
         terminalService = new TerminalService(osServiceSpy, fsServiceSpy, ipcMainSpy);
@@ -56,35 +58,35 @@ describe("TerminalService", () => {
 
         it("should default to using powershell and launch in a new process", async () => {
             const pid = await terminalService.runInTerminal("echo hello");
-            expect(typeof pid).toBe("number");
-            expect(pid).toBe(1234);
-            expect(spawnSpy).toHaveBeenCalledTimes(1);
-            const spawnArgs = spawnSpy.calls.mostRecent().args;
-            expect(spawnArgs.length).toBe(3);
-            expect(spawnArgs[0]).toBe("cmd.exe");
-            expect(spawnArgs[1]).toEqual(["/c", "start", "powershell", "-NoExit", "-Command", "echo hello"]);
+            expect(typeof pid).to.eq("number");
+            expect(pid).to.eq(1234);
+            expect(spawnSpy).to.have.been.calledOnce;
+            const spawnArgs = spawnSpy.lastCall.args;
+            expect(spawnArgs.length).to.eq(3);
+            expect(spawnArgs[0]).to.eq("cmd.exe");
+            expect(spawnArgs[1]).to.eql(["/c", "start", "powershell", "-NoExit", "-Command", "echo hello"]);
         });
 
         it("should launch powershell in a new node process", async () => {
             const pid = await terminalService.runInTerminal("echo hello", "powershell");
-            expect(typeof pid).toBe("number");
-            expect(pid).toBe(1234);
-            expect(spawnSpy).toHaveBeenCalledTimes(1);
-            const spawnArgs = spawnSpy.calls.mostRecent().args;
-            expect(spawnArgs.length).toBe(3);
-            expect(spawnArgs[0]).toBe("cmd.exe");
-            expect(spawnArgs[1]).toEqual(["/c", "start", "powershell", "-NoExit", "-Command", "echo hello"]);
+            expect(typeof pid).to.eq("number");
+            expect(pid).to.eq(1234);
+            expect(spawnSpy).to.have.been.calledOnce;
+            const spawnArgs = spawnSpy.lastCall.args;
+            expect(spawnArgs.length).to.eq(3);
+            expect(spawnArgs[0]).to.eq("cmd.exe");
+            expect(spawnArgs[1]).to.eql(["/c", "start", "powershell", "-NoExit", "-Command", "echo hello"]);
         });
 
         it("should launch cmd in a new node process", async () => {
             const pid = await terminalService.runInTerminal("echo hello", "cmd");
-            expect(typeof pid).toBe("number");
-            expect(pid).toBe(1234);
-            expect(spawnSpy).toHaveBeenCalledTimes(1);
-            const spawnArgs = spawnSpy.calls.mostRecent().args;
-            expect(spawnArgs.length).toBe(3);
-            expect(spawnArgs[0]).toBe("cmd.exe");
-            expect(spawnArgs[1]).toEqual(["/c", "start", "cmd", "/k", "echo hello"]);
+            expect(typeof pid).to.eq("number");
+            expect(pid).to.eq(1234);
+            expect(spawnSpy).to.have.been.calledOnce;
+            const spawnArgs = spawnSpy.lastCall.args;
+            expect(spawnArgs.length).to.eq(3);
+            expect(spawnArgs[0]).to.eq("cmd.exe");
+            expect(spawnArgs[1]).to.eql(["/c", "start", "cmd", "/k", "echo hello"]);
         });
     });
 
@@ -105,62 +107,62 @@ describe("TerminalService", () => {
         it("should default to using x-terminal-emulator for debian and launch", async () => {
             isDebian = true;
             const pid = await terminalService.runInTerminal("echo hello");
-            expect(typeof pid).toBe("number");
-            expect(pid).toBe(1234);
-            expect(spawnSpy).toHaveBeenCalledTimes(1);
-            const spawnArgs = spawnSpy.calls.mostRecent().args;
-            expect(spawnArgs.length).toBe(3);
-            expect(spawnArgs[0]).toBe("x-terminal-emulator");
-            expect(spawnArgs[1]).toEqual(["-e", "echo hello; bash"]);
+            expect(typeof pid).to.eq("number");
+            expect(pid).to.eq(1234);
+            expect(spawnSpy).to.have.been.calledOnce;
+            const spawnArgs = spawnSpy.lastCall.args;
+            expect(spawnArgs.length).to.eq(3);
+            expect(spawnArgs[0]).to.eq("x-terminal-emulator");
+            expect(spawnArgs[1]).to.eql(["-e", "echo hello; bash"]);
         });
 
         it("should default to using gnome-terminal for gnome and launch", async () => {
             process.env.DESKTOP_SESSION = "gnome";
             const pid = await terminalService.runInTerminal("echo hello");
-            expect(typeof pid).toBe("number");
-            expect(pid).toBe(1234);
-            expect(spawnSpy).toHaveBeenCalledTimes(1);
-            const spawnArgs = spawnSpy.calls.mostRecent().args;
-            expect(spawnArgs.length).toBe(3);
-            expect(spawnArgs[0]).toBe("gnome-terminal");
-            expect(spawnArgs[1]).toEqual(["-e", "echo hello; bash"]);
+            expect(typeof pid).to.eq("number");
+            expect(pid).to.eq(1234);
+            expect(spawnSpy).to.have.been.calledOnce;
+            const spawnArgs = spawnSpy.lastCall.args;
+            expect(spawnArgs.length).to.eq(3);
+            expect(spawnArgs[0]).to.eq("gnome-terminal");
+            expect(spawnArgs[1]).to.eql(["-e", "echo hello; bash"]);
         });
 
         it("should default to using konsole for kde-plasma and launch", async () => {
             process.env.DESKTOP_SESSION = "kde-plasma";
             const pid = await terminalService.runInTerminal("echo hello");
-            expect(typeof pid).toBe("number");
-            expect(pid).toBe(1234);
-            expect(spawnSpy).toHaveBeenCalledTimes(1);
-            const spawnArgs = spawnSpy.calls.mostRecent().args;
-            expect(spawnArgs.length).toBe(3);
-            expect(spawnArgs[0]).toBe("konsole");
-            expect(spawnArgs[1]).toEqual(["-e", "echo hello; bash"]);
+            expect(typeof pid).to.eq("number");
+            expect(pid).to.eq(1234);
+            expect(spawnSpy).to.have.been.calledOnce;
+            const spawnArgs = spawnSpy.lastCall.args;
+            expect(spawnArgs.length).to.eq(3);
+            expect(spawnArgs[0]).to.eq("konsole");
+            expect(spawnArgs[1]).to.eql(["-e", "echo hello; bash"]);
         });
 
         it("should use the default colorterm if necessary and launch", async () => {
             process.env.COLORTERM = "xterm-256color";
             const pid = await terminalService.runInTerminal("echo hello");
-            expect(typeof pid).toBe("number");
-            expect(pid).toBe(1234);
-            expect(spawnSpy).toHaveBeenCalledTimes(1);
-            const spawnArgs = spawnSpy.calls.mostRecent().args;
-            expect(spawnArgs.length).toBe(3);
-            expect(spawnArgs[0]).toBe("xterm-256color");
-            expect(spawnArgs[1]).toEqual(["-e", "echo hello; bash"]);
+            expect(typeof pid).to.eq("number");
+            expect(pid).to.eq(1234);
+            expect(spawnSpy).to.have.been.calledOnce;
+            const spawnArgs = spawnSpy.lastCall.args;
+            expect(spawnArgs.length).to.eq(3);
+            expect(spawnArgs[0]).to.eq("xterm-256color");
+            expect(spawnArgs[1]).to.eql(["-e", "echo hello; bash"]);
         });
 
         it("should default to using xterm if non-debian ubuntu and launch", async () => {
             delete process.env.COLORTERM;
             delete process.env.TERM;
             const pid = await terminalService.runInTerminal("echo hello");
-            expect(typeof pid).toBe("number");
-            expect(pid).toBe(1234);
-            expect(spawnSpy).toHaveBeenCalledTimes(1);
-            const spawnArgs = spawnSpy.calls.mostRecent().args;
-            expect(spawnArgs.length).toBe(3);
-            expect(spawnArgs[0]).toBe("xterm");
-            expect(spawnArgs[1]).toEqual(["-e", "echo hello; bash"]);
+            expect(typeof pid).to.eq("number");
+            expect(pid).to.eq(1234);
+            expect(spawnSpy).to.have.been.calledOnce;
+            const spawnArgs = spawnSpy.lastCall.args;
+            expect(spawnArgs.length).to.eq(3);
+            expect(spawnArgs[0]).to.eq("xterm");
+            expect(spawnArgs[1]).to.eql(["-e", "echo hello; bash"]);
         });
     });
 
@@ -171,13 +173,13 @@ describe("TerminalService", () => {
 
         it("should default to using Terminal.app and launch in a new process", async () => {
             const pid = await terminalService.runInTerminal("echo hello");
-            expect(typeof pid).toBe("number");
-            expect(pid).toBe(1234);
-            expect(spawnSpy).toHaveBeenCalledTimes(1);
-            const spawnArgs = spawnSpy.calls.mostRecent().args;
-            expect(spawnArgs.length).toBe(3);
-            expect(spawnArgs[0]).toBe("osascript");
-            expect(spawnArgs[1]).toEqual([
+            expect(typeof pid).to.eq("number");
+            expect(pid).to.eq(1234);
+            expect(spawnSpy).to.have.been.calledOnce;
+            const spawnArgs = spawnSpy.lastCall.args;
+            expect(spawnArgs.length).to.eq(3);
+            expect(spawnArgs[0]).to.eq("osascript");
+            expect(spawnArgs[1]).to.eql([
                 "-e",
                 'tell application "Terminal" to do script "echo hello"',
                 "-e",
@@ -186,3 +188,4 @@ describe("TerminalService", () => {
         });
     });
 });
+import "sinon-chai";

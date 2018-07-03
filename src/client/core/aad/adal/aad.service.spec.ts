@@ -1,7 +1,7 @@
-import * as moment from "moment";
-
 import { AccessToken, InMemoryDataStore } from "@batch-flask/core";
+import { expect } from "chai";
 import { Constants } from "common";
+import * as moment from "moment";
 import * as sinon from "sinon";
 import { F } from "test/utils";
 import { MockBrowserWindow, MockSplashScreen } from "test/utils/mocks/windows";
