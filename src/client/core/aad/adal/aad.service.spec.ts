@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { Constants } from "common";
 import * as moment from "moment";
 import * as sinon from "sinon";
-import { F } from "test/utils";
+import {expect} from "jasmine";
 import { MockBrowserWindow, MockSplashScreen } from "test/utils/mocks/windows";
 import { AADUser } from "./aad-user";
 import { AADService } from "./aad.service";
