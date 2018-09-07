@@ -56,8 +56,16 @@ export class ActivityMonitorComponent implements OnInit, OnDestroy {
         this._sub.unsubscribe();
     }
 
+    public cancelSelection(activities: Activity[]) {
+        this.activityService.cancelSelection(activities);
+    }
+
     public cancelAll() {
-        this.activityService.cancelMultiple(this.runningActivities);
+        this.activityService.cancelSelection(this.runningActivities);
+    }
+
+    public clearHistory() {
+        this.activityService.clearHistory();
     }
 
     // public focusRunning() {

@@ -1,5 +1,8 @@
 <div class="tree-view-header">
     <bl-clickable class="name">{{name}}</bl-clickable>
+    <bl-clickable class="clear-all" [title]="xButtonTitle" (do)="xButtonClicked()">
+        <i class="fa fa-times"></i>
+    </bl-clickable>
 </div>
 <bl-focus-section *ngIf="activities.length > 0"
     class="tree-view-content"
@@ -13,7 +16,7 @@
         <bl-virtual-scroll [items]="treeRows" [childHeight]="40" (update)="updateViewPortItems($event)" (change)="onViewScroll($event)">
             <bl-activity-monitor-item *ngFor="let row of viewPortRows; let i = index; trackBy: treeRowTrackBy"
                 [activity]="row.activity"
-                [focused]="isFocused && focusedIndex === i + viewPortStart"
+                [focused]="isFocused && shouldFocusItem(i + viewPortStart)"
                 [hovered]="hoveredIndex === i + viewPortStart"
                 [indent]="row.indent"
                 [expanded]="isExpanded(row.id)"

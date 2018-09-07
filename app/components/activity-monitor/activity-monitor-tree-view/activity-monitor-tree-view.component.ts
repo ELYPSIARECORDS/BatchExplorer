@@ -26,13 +26,18 @@ export interface TreeRow {
 export class ActivityMonitorTreeViewComponent implements OnChanges {
     @Input() public activities: Activity[];
     @Input() public name: string;
+    @Input() public xButtonTitle: string;
     @Output() public focus = new EventEmitter<boolean>();
+    @Output() public xButton = new EventEmitter<void>();
 
     public expanded = new Set<number>();
     public treeRows: TreeRow[] = [];
     public dropTargetPath: string = null;
     public isFocused = false;
-    public focusedIndex: number = -1;
+    public focusedIndices: Set<number> = new Set([-1]);
+    public lastFocusedIndex: number;
+    public shiftKey: boolean;
+    public ctrlKey: boolean;
     public hoveredIndex: number;
     public focusedAction: number = null;
     public viewPortRows: TreeRow[] = [];
@@ -44,7 +49,6 @@ export class ActivityMonitorTreeViewComponent implements OnChanges {
 
     public ngOnChanges(changes) {
         if (changes.activities) {
-            console.log(changes.activities);
             this._buildTreeRows();
         }
     }
@@ -57,7 +61,18 @@ export class ActivityMonitorTreeViewComponent implements OnChanges {
     }
 
     public focusRow(treeRow: TreeRow) {
-        this.focusedIndex = treeRow.index;
+        if (this.shiftKey) {
+            const [start, end] = treeRow.index < this.lastFocusedIndex ?
+                [treeRow.index, this.lastFocusedIndex] :
+                [this.lastFocusedIndex, treeRow.index];
+            const newIndices = this.treeRows.map(row => row.index).slice(start, end + 1);
+            this.focusedIndices = new Set(newIndices);
+        } else if (this.ctrlKey) {
+            this.focusedIndices.add(treeRow.index);
+        } else {
+            this.focusedIndices = new Set([treeRow.index]);
+        }
+        this.lastFocusedIndex = treeRow.index;
         this.focusedAction = null;
         this.changeDetector.markForCheck();
     }
@@ -79,15 +94,33 @@ export class ActivityMonitorTreeViewComponent implements OnChanges {
     public handleKeyboardNavigation(event: KeyboardEvent) {
         event.stopImmediatePropagation();
         if (!this.isFocused) { return; }
-        const curTreeRow = this.treeRows[this.focusedIndex];
+        const curTreeRow = this.treeRows[this.lastFocusedIndex];
         switch (event.code) {
+            case "ShiftLeft":
+            case "ShiftRight":
+                this.shiftKey = true;
+                return;
+            case "ControlLeft":
+            case "ControlRight":
+                this.ctrlKey = true;
+                return;
             case "ArrowDown": // Move focus down
-                this.focusedIndex++;
+                if (event.shiftKey) {
+                    this.focusedIndices.add(this.lastFocusedIndex + 1);
+                } else {
+                    this.focusedIndices = new Set([this.lastFocusedIndex + 1]);
+                }
+                this.lastFocusedIndex++;
                 this.focusedAction = null;
                 event.preventDefault();
                 break;
             case "ArrowUp":   // Move focus up
-                this.focusedIndex--;
+                if (event.shiftKey) {
+                    this.focusedIndices.add(this.lastFocusedIndex - 1);
+                } else {
+                    this.focusedIndices = new Set([this.lastFocusedIndex - 1]);
+                }
+                this.lastFocusedIndex--;
                 this.focusedAction = null;
                 event.preventDefault();
                 break;
@@ -119,13 +152,42 @@ export class ActivityMonitorTreeViewComponent implements OnChanges {
             default:
                 break;
         }
-        this.focusedIndex = (this.focusedIndex + this.treeRows.length) % this.treeRows.length;
+        this.lastFocusedIndex = (this.lastFocusedIndex + this.treeRows.length) % this.treeRows.length;
+        // iterate through and modulo all elements of the focused indices set
+        const newIndices = Array.from(this.focusedIndices.values()).map(val => {
+            return (val + this.treeRows.length) % this.treeRows.length;
+        });
+        this.focusedIndices = new Set(newIndices);
         this.changeDetector.markForCheck();
+    }
+
+    @HostListener("keyup", ["$event"])
+    public handleKeyUp(event: KeyboardEvent) {
+        if (!this.isFocused) { return; }
+        switch (event.code) {
+            case "ShiftLeft":
+            case "ShiftRight":
+                this.shiftKey = false;
+                return;
+            case "ControlLeft":
+            case "ControlRight":
+                this.ctrlKey = false;
+                return;
+            default:
+        }
+    }
+
+    public shouldFocusItem(index) {
+        return this.focusedIndices.has(index);
     }
 
     public setFocus(focus: boolean) {
         this.isFocused = focus;
-        this.focus.emit(true);
+        this.focus.emit(focus);
+        if (!focus) {
+            this.focusedIndices.clear();
+            this.lastFocusedIndex = -1;
+        }
         this.changeDetector.markForCheck();
     }
 
@@ -144,6 +206,10 @@ export class ActivityMonitorTreeViewComponent implements OnChanges {
     public collapseAll() {
         this.expanded.clear();
         this._buildTreeRows();
+    }
+
+    public xButtonClicked() {
+        this.xButton.emit();
     }
 
     public treeRowTrackBy(treeRow: TreeRow) {
@@ -214,7 +280,12 @@ export class ActivityMonitorTreeViewComponent implements OnChanges {
     /* Key Navigation Helpers */
     private _onRightPress(treeRow: TreeRow) {
         if (this.isExpanded(treeRow.id)) {
-            this.focusedIndex++;
+            if (this.shiftKey) {
+                this.focusedIndices.add(this.lastFocusedIndex + 1);
+            } else {
+                this.focusedIndices = new Set([this.lastFocusedIndex + 1]);
+            }
+            this.lastFocusedIndex++;
         } else {
             this.expand(treeRow);
         }
@@ -224,11 +295,17 @@ export class ActivityMonitorTreeViewComponent implements OnChanges {
         if (this.isExpanded(treeRow.id)) {
             this.collapse(treeRow);
         } else if (treeRow.parent) {
-            this.focusedIndex = treeRow.parent.index;
+            if (this.shiftKey) {
+                this.focusedIndices.add(treeRow.parent.index);
+            } else {
+                this.focusedIndices = new Set([treeRow.parent.index]);
+            }
+            this.lastFocusedIndex = treeRow.parent.index;
         }
     }
 
     private _tabForward(treeRow: TreeRow) {
+        this.focusedIndices = new Set([this.lastFocusedIndex]);
         if (this.focusedAction === null) {
             this.focusedAction = 0;
         } else {
