@@ -9,20 +9,28 @@ import { NodesHeatmapComponent, NodesHeatmapLegendComponent } from "./heatmap";
 import { HistoryGraphComponent } from "./history-graph";
 import {
     CpuUsageGraphComponent, DiskIOGraphComponent, DiskUsageGraphComponent,
-    EnableAppInsightsDocComponent, MemoryUsageGraphComponent, NetworkUsageGraphComponent,
-    PerformanceGraphComponent,
+    EnableAppInsightsDocComponent, GpuMemoryUsageGraphComponent, GpuUsageGraphComponent,
+    MemoryUsageGraphComponent, NetworkUsageGraphComponent, PerformanceGraphComponent,
 } from "./performance-graph";
 import { PoolGraphsComponent } from "./pool-graphs.component";
 import { PoolStateGraphComponent } from "./pool-state-graph";
 import { PoolStandaloneGraphsComponent } from "./standalone";
 
 const components = [NodesHeatmapComponent,
-    NodesHeatmapLegendComponent, PoolGraphsComponent, HistoryGraphComponent,
-    PerformanceGraphComponent, CpuUsageGraphComponent,
-    MemoryUsageGraphComponent, DiskUsageGraphComponent, DiskIOGraphComponent,
-    NetworkUsageGraphComponent, EnableAppInsightsDocComponent,
+    NodesHeatmapLegendComponent,
+    PoolGraphsComponent,
+    HistoryGraphComponent,
+    PerformanceGraphComponent,
+    CpuUsageGraphComponent,
+    MemoryUsageGraphComponent,
+    DiskUsageGraphComponent,
+    DiskIOGraphComponent,
+    NetworkUsageGraphComponent,
+    EnableAppInsightsDocComponent,
     PoolStandaloneGraphsComponent,
     PoolStateGraphComponent,
+    GpuUsageGraphComponent,
+    GpuMemoryUsageGraphComponent,
 ];
 
 @NgModule({
