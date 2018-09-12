@@ -17,7 +17,7 @@ import "./gpu-memory-usage-graph.scss";
 export class GpuMemoryUsageGraphComponent extends PerformanceGraphComponent implements OnChanges {
     @Input() public showIndividualGpu = false;
 
-    public unit = "B";
+    public unit = "%";
 
     public gpuUsages: NodesPerformanceMetric = {};
     public individualGpuUsages: PerformanceMetric[][] = [];
@@ -35,12 +35,12 @@ export class GpuMemoryUsageGraphComponent extends PerformanceGraphComponent impl
 
         if (changes.data) {
             this._clearMetricSubs();
-            this._metricSubs.push(this.data.observeMetric(BatchPerformanceMetricType.gpuUsage).subscribe((data) => {
+            this._metricSubs.push(this.data.observeMetric(BatchPerformanceMetricType.gpuMemory).subscribe((data) => {
                 this.gpuUsages = data;
                 this._updateStatus();
                 this.updateData();
             }));
-            this._metricSubs.push(this.data.observeMetric(BatchPerformanceMetricType.individualGpuUsage)
+            this._metricSubs.push(this.data.observeMetric(BatchPerformanceMetricType.individualGpuMemory)
                 .subscribe((data) => {
                     this.individualGpuUsages = data as any;
                     if (data) {
@@ -91,9 +91,9 @@ export class GpuMemoryUsageGraphComponent extends PerformanceGraphComponent impl
 
     private _updateStatus() {
         if (this.lastGpuUsage) {
-            this.status.next(`${this.lastGpuUsage.value}B`);
+            this.status.next(`${this.lastGpuUsage.value}%`);
         } else {
-            this.status.next("- B");
+            this.status.next("- %");
         }
     }
 }
