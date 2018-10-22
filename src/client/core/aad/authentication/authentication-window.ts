@@ -11,7 +11,7 @@ export class AuthenticationWindow extends UniqueWindow {
             webPreferences: {
                 nodeIntegration: false,
             },
-            title: `BatchExplorer: Login to ${this.batchExplorerApp.azureEnvironment.name}`,
+            title: `BatchExplorer: Login to ${this.properties.azureEnvironment.name}`,
         });
 
         window.on("page-title-updated", (e, title) => {
@@ -31,8 +31,8 @@ export class AuthenticationWindow extends UniqueWindow {
     }
 
     public onRedirect(callback: (newUrl: string) => void) {
-        this._window.webContents.on("did-get-redirect-request", (event, oldUrl, newUrl) => {
-            callback(newUrl);
+        this._window.webContents.session.webRequest.onBeforeRedirect((details) => {
+            callback(details.redirectURL);
         });
     }
 

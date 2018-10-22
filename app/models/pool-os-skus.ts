@@ -1,6 +1,5 @@
+import { ObjectUtils } from "@batch-flask/utils";
 import { List } from "immutable";
-
-import { ObjectUtils } from "app/utils";
 import { NodeAgentSku } from "./node-agent-sku";
 
 const dataScienceVms = {
@@ -47,7 +46,7 @@ export class PoolOsSkus {
          */
         let targetOffers = null;
         skus.forEach((sku) => {
-            for (const imageReference of sku.verifiedImageReferences) {
+            for (const imageReference of sku.verifiedImageReferences.toArray()) {
                 targetOffers = offers;
                 if (dockerContainer[imageReference.offer] &&
                     dockerContainer[imageReference.offer].includes(imageReference.sku)) {

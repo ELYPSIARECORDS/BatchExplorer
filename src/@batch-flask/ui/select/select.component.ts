@@ -19,14 +19,15 @@ import {
     Output,
     QueryList,
     Self,
+    SimpleChange,
     ViewChild,
 } from "@angular/core";
 import { ControlValueAccessor, NgControl } from "@angular/forms";
 import { FlagInput, ListKeyNavigator, coerceBooleanProperty } from "@batch-flask/core";
 import { FormFieldControl } from "@batch-flask/ui/form/form-field";
-import { SelectDropdownComponent } from "@batch-flask/ui/select/select-dropdown";
+import { SelectDropdownComponent } from "@batch-flask/ui/select/select-dropdown/select-dropdown.component";
 import { Subject, Subscription } from "rxjs";
-import { SelectOptionComponent } from "./option";
+import { BL_OPTION_PARENT, OptionParent, SelectOptionComponent } from "./option/option.component";
 
 import "./select.scss";
 
@@ -49,9 +50,14 @@ let nextUniqueId = 0;
     selector: "bl-select",
     templateUrl: "select.html",
     changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [{ provide: FormFieldControl, useExisting: SelectComponent }],
+    providers: [
+        { provide: FormFieldControl, useExisting: SelectComponent },
+        { provide: BL_OPTION_PARENT, useExisting: SelectComponent },
+    ],
 })
-export class SelectComponent implements FormFieldControl<any>, ControlValueAccessor, AfterContentInit, OnDestroy {
+export class SelectComponent implements FormFieldControl<any>, OptionParent,
+    ControlValueAccessor, AfterContentInit, OnDestroy {
+
     @Input() public placeholder = "";
 
     /**
@@ -66,7 +72,7 @@ export class SelectComponent implements FormFieldControl<any>, ControlValueAcces
 
     @Input()
     get id(): string { return this._id; }
-    set id(value: string) { this._id = value || this._uid; }
+    set id(value: string) { this._id = value; }
 
     @Input() @FlagInput() public required = false;
 
@@ -82,12 +88,35 @@ export class SelectComponent implements FormFieldControl<any>, ControlValueAcces
         this._disabled = coerceBooleanProperty(value);
     }
 
+    @Input()
+    public get value(): any | any[] {
+        if (this.multiple) {
+            return [...this.selected];
+        } else {
+            return [...this.selected].first();
+        }
+    }
+    public set value(value: any | any[]) {
+        if (value !== this.value) {
+            this.writeValue(value);
+            this.stateChanges.next();
+        }
+    }
+
     @Output() public change = new EventEmitter<any | any[]>();
 
-    @HostBinding("attr.aria-describedby")
-    public ariaDescribedby: string;
+    /**
+     * ARIA
+     */
+    @HostBinding("attr.aria-describedby") public ariaDescribedby: string;
+    @HostBinding("attr.role") public readonly role = "combobox";
+    @HostBinding("attr.aria-haspopup") public readonly ariaHasPopup = "listbox";
+    @HostBinding("attr.aria-label") public get ariaLabel() { return this.placeholder; }
+    @HostBinding("attr.aria-expanded") public get ariaExpanded() { return this.dropdownOpen; }
+    @HostBinding("attr.aria-owns") public get ariaOwns() { return this.dropdownId; }
 
-    @ContentChildren(SelectOptionComponent)
+    // Options
+    @ContentChildren(SelectOptionComponent, { descendants: true })
     public options: QueryList<SelectOptionComponent>;
 
     public filter: string = "";
@@ -119,8 +148,7 @@ export class SelectComponent implements FormFieldControl<any>, ControlValueAcces
     private _focusedOption: SelectOptionComponent = null;
     private _overlayRef: OverlayRef;
     private _backDropClickSub: Subscription;
-    private _id: string;
-    private _uid = `bl-select-${nextUniqueId++}`;
+    private _id = `bl-select-${nextUniqueId++}`;
     private _disabled = false;
     private _keyNavigator: ListKeyNavigator<SelectOptionComponent>;
     private _selected: Set<any> = new Set<any>();
@@ -132,24 +160,11 @@ export class SelectComponent implements FormFieldControl<any>, ControlValueAcces
         return Boolean(this._dropdownRef);
     }
 
-    @Input()
-    public get value(): any | any[] {
-        if (this.multiple) {
-            return [...this.selected];
-        } else {
-            return [...this.selected].first();
-        }
-    }
-    public set value(value: any | any[]) {
-        if (value !== this.value) {
-            this.writeValue(value);
-            this.stateChanges.next();
-        }
-    }
-
     private _propagateChange: (value: any) => void;
     private _optionsMap: Map<any, SelectOptionComponent>;
-
+    public get dropdownId() {
+        return this.id + "-dropdown";
+    }
     constructor(
         @Self() @Optional() public ngControl: NgControl,
         private changeDetector: ChangeDetectorRef,
@@ -168,8 +183,11 @@ export class SelectComponent implements FormFieldControl<any>, ControlValueAcces
 
     public ngAfterContentInit() {
         this._computeOptions();
-        this.options.changes.subscribe(() => {
+        this.options.changes.subscribe((value) => {
             this._computeOptions();
+        });
+        setTimeout(() => {
+            this.changeDetector.markForCheck();
         });
     }
 
@@ -264,6 +282,7 @@ export class SelectComponent implements FormFieldControl<any>, ControlValueAcces
         const injector = new SelectInjector(this, this.injector);
         const portal = new ComponentPortal(SelectDropdownComponent, null, injector);
         const ref = this._dropdownRef = this._overlayRef.attach(portal);
+        ref.instance.id = this.dropdownId;
         ref.instance.displayedOptions = this.displayedOptions;
         ref.instance.focusedOption = this.focusedOption;
         ref.instance.selected = this.selected;
@@ -289,7 +308,7 @@ export class SelectComponent implements FormFieldControl<any>, ControlValueAcces
         this.changeDetector.markForCheck();
     }
 
-    public closeDropdown() {
+    public closeDropdown(focus = true) {
         if (!this.dropdownOpen) { return; }
         if (this.filterable) {
             this._keyNavigator.withTypeAhead(); // Reenable typeAhead as it was disabled when dropdown is open
@@ -299,9 +318,11 @@ export class SelectComponent implements FormFieldControl<any>, ControlValueAcces
             this._overlayRef = null;
             this._dropdownRef = null;
         }
-        setTimeout(() => {
-            this._selectButtonEl.nativeElement.focus();
-        });
+        if (focus) {
+            setTimeout(() => {
+                this._selectButtonEl.nativeElement.focus();
+            });
+        }
 
         this.changeDetector.markForCheck();
     }
@@ -360,6 +381,25 @@ export class SelectComponent implements FormFieldControl<any>, ControlValueAcces
         this.clickSelectButton(event);
     }
 
+    public optionValueChanged(value: SimpleChange) {
+        if (this._optionsMap.has(value.previousValue)) {
+            const previous = this._optionsMap.get(value.previousValue);
+            this._optionsMap.set(value.currentValue, previous);
+        }
+        this.changeDetector.markForCheck();
+    }
+
+    public onButtonBlur() {
+        if (this.dropdownOpen && !this.filterable) {
+            this.closeDropdown(false);
+        }
+    }
+
+    public onInputBlur() {
+        if (this.dropdownOpen) {
+            this.closeDropdown(false);
+        }
+    }
     private _computeOptions() {
         const optionsMap = new Map();
         this.options.forEach((option) => {

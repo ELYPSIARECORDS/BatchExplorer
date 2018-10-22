@@ -71,6 +71,7 @@ import {
     LocalFileStorage,
     NavigatorService,
     NcjFileGroupService,
+    NcjModule,
     NcjSubmitService,
     NcjTemplateService,
     NetworkConfigurationService,
@@ -93,14 +94,17 @@ import {
     TaskService,
     TenantDetailsService,
     ThemeService,
+    VersionService,
     VmSizeService,
 } from "./services";
+import { RendererTelemetryModule } from "./services/telemetry";
 
 const modules = [
     AccountModule, ApplicationModule, CertificateModule,
     DataModule, FileModule, JobModule, JobScheduleModule, NodeModule, PoolModule,
     SettingsModule, TaskModule, MarketModule, LayoutModule,
     MiscModule,
+    NcjModule,
 ];
 
 const graphApiServices = [AADApplicationService, AADGraphHttpService, MsGraphHttpService, ServicePrincipalService];
@@ -122,6 +126,7 @@ const graphApiServices = [AADApplicationService, AADGraphHttpService, MsGraphHtt
         MaterialModule,
         ReactiveFormsModule,
         HttpModule,
+        RendererTelemetryModule,
         RouterModule.forRoot(routes, { useHash: true, paramsInheritanceStrategy: "always" }),
         BaseModule,
         HttpClientModule,
@@ -186,6 +191,7 @@ const graphApiServices = [AADApplicationService, AADGraphHttpService, MsGraphHtt
         TaskService,
         TenantDetailsService,
         ThemeService,
+        VersionService,
         VmSizeService,
         PredefinedFormulaService,
         ...graphApiServices,

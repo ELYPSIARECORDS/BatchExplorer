@@ -10,12 +10,16 @@ export const FileSourceTypes = {
 
 export const forms = {
     validation: {
+        minLength:  {
+            container: 3,
+        },
         maxLength: {
             id: 64,
             displayName: 1024,
             applicationName: 64,
             version: 64,
             fileGroup: 55,
+            container: 63,
         },
         regex: {
             id: /^[\w\_-]+$/i,
@@ -35,6 +39,7 @@ export const forms = {
 export const SavedDataFilename = {
     sshPublicKeys: "ssh-pub-keys.json",
     autosacleFormula: "autoscale-formula.json",
+    localTemplates: "local-templates",
 };
 
 export const localStorageKey = {
@@ -77,6 +82,16 @@ export const localStorageKey = {
      * Last selected storage account
      */
     lastStorageAccount: "last_storage_account",
+
+    /**
+     * Telemetry enabled
+     */
+    telemetryEnabled: "telemetry_enabled",
+
+    /**
+     * Save a randomly generated machine id
+     */
+    machineId: "machine_id",
 };
 
 export const ApiVersion = {
@@ -97,6 +112,9 @@ export const ApiVersion = {
 export const ExternalLinks = {
     supportRequest: "https://portal.azure.com/#blade/Microsoft_Azure_Support/HelpAndSupportBlade/newsupportrequest",
     setupStorageAccount: "https://portal.azure.com/#resource{0}/storageAccount",
+    license: "https://azure.github.io/BatchExplorer/EULA.html",
+    privacyStatement: "https://privacy.microsoft.com/en-us/privacystatement",
+    submitIssue: "https://privacy.microsoft.com/en-us/privacystatement",
 };
 
 export const ODataFields = {
@@ -162,6 +180,7 @@ export const IpcEvent = {
     },
     launchApplication: "LAUNCH_APPLICATION",
     logoutAndLogin: "LOGOUT_AND_LOGIN",
+    sendTelemetry: "SEND_TELEMETRY",
 };
 
 export const ExternalApplication = {
@@ -191,4 +210,20 @@ export const KnownQueryParameters = {
     inputParameter: "input-parameter",
     assetContainer: "asset-container",
     assetPaths: "asset-paths",
+};
+
+const cdn = "https://batchexplorer.azureedge.net";
+
+export const AutoUpdateUrls = {
+    stable: `${cdn}/stable`,
+    insider: `${cdn}/insider`,
+    testing: `${cdn}/test`,
+};
+
+/**
+ * All telemetry event should be here to keep track of it
+ */
+export const TelemetryEvents = {
+    applicationStart: "Application start",
+    disableTelemetry: "Disable telemetry",
 };

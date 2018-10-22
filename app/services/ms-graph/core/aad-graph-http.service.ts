@@ -6,8 +6,7 @@ import { UrlUtils } from "@batch-flask/utils";
 import { ArmBatchAccount } from "app/models";
 import { AdalService } from "app/services/adal";
 import { BatchAccountService } from "app/services/batch-account";
-import { BatchExplorerService } from "app/services/batch-labs.service";
-import { AADUser } from "client/core/aad/adal/aad-user";
+import { BatchExplorerService } from "app/services/batch-explorer.service";
 import { Constants } from "common";
 import { Observable, throwError } from "rxjs";
 import { catchError, flatMap, retryWhen, shareReplay, take, tap } from "rxjs/operators";
@@ -18,14 +17,12 @@ export class AADGraphHttpService extends HttpService {
         return this.batchExplorer.azureEnvironment.aadGraph;
     }
 
-    private _currentUser: AADUser;
     constructor(
         httpHandler: HttpHandler,
         private adal: AdalService,
         private accountService: BatchAccountService,
         private batchExplorer: BatchExplorerService) {
         super(httpHandler);
-        this.adal.currentUser.subscribe(x => this._currentUser = x);
     }
 
     public request(method: any, uri?: any, options?: any): Observable<any> {

@@ -6,7 +6,7 @@ import { UrlUtils } from "@batch-flask/utils";
 import { ArmBatchAccount, BatchAccount, LocalBatchAccount } from "app/models";
 import { AdalService } from "app/services/adal";
 import { BatchAccountService } from "app/services/batch-account";
-import { BatchExplorerService } from "app/services/batch-labs.service";
+import { BatchExplorerService } from "app/services/batch-explorer.service";
 import { Constants } from "common";
 import { Observable, from, throwError } from "rxjs";
 import { catchError, flatMap, map, retryWhen, shareReplay, take } from "rxjs/operators";
@@ -48,6 +48,14 @@ export class AzureBatchHttpService extends HttpService {
                             options).pipe(
                                 retryWhen(attempts => this.retryWhen(attempts)),
                                 catchError((error) => {
+                                    if (error.status === 0) {
+                                        return throwError(new ServerError({
+                                            status: error.status,
+                                            statusText: error.statusText,
+                                            message: error.message,
+                                            code: error.name,
+                                        }));
+                                    }
                                     const err = ServerError.fromBatchHttp(error);
                                     return throwError(err);
                                 }),
@@ -83,7 +91,7 @@ export class AzureBatchHttpService extends HttpService {
             options.headers = new HttpHeaders();
         }
         options.headers = (options.headers as any)
-            .set("Content-Type", "application/json; odata=minimalmetadata; charset=utf-8")
+            .set("Content-Type", "application/json; odata=minimalmetadata; charset=UTF-8")
             .set("Cache-Control", "no-cache");
 
         return options;

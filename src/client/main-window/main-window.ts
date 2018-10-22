@@ -1,6 +1,7 @@
-import { BrowserWindow, app, ipcMain } from "electron";
-
+import { AUTO_UPDATE_MAIN_SERVICE_TOKEN } from "@batch-flask/electron";
 import { log } from "@batch-flask/utils";
+import { TelemetryManager } from "client/core/telemetry";
+import { BrowserWindow, app, ipcMain } from "electron";
 import { BehaviorSubject, Observable } from "rxjs";
 import { Constants } from "../client-constants";
 import { BatchExplorerApplication, FileSystem, GenericWindow, LocalFileStorage } from "../core";
@@ -37,7 +38,7 @@ export class MainWindow extends GenericWindow {
     private _state = new BehaviorSubject<WindowState>(WindowState.Closed);
     private _resolveAppReady: () => void;
 
-    constructor(batchExplorerApp: BatchExplorerApplication) {
+    constructor(batchExplorerApp: BatchExplorerApplication, private telemetryManager: TelemetryManager) {
         super(batchExplorerApp);
         this.state = this._state.asObservable();
         this.appReady = new Promise((resolve) => {
@@ -84,10 +85,14 @@ export class MainWindow extends GenericWindow {
         anyWindow.windowHandler = this;
         anyWindow.logger = renderLogger;
         anyWindow.batchExplorerApp = this.batchExplorerApp;
-        anyWindow.autoUpdater = this.batchExplorerApp.autoUpdater;
+        anyWindow._sharedServices = {
+            [AUTO_UPDATE_MAIN_SERVICE_TOKEN]: this.batchExplorerApp.autoUpdater,
+        };
+        anyWindow._injector = this.batchExplorerApp.injector;
         anyWindow.authenticationWindow = this.batchExplorerApp.authenticationWindow;
         anyWindow.translationsLoader = this.batchExplorerApp.translationLoader;
         anyWindow.localeService = this.batchExplorerApp.localeService;
+        anyWindow.TELEMETRY_ENABLED = this.telemetryManager.telemetryEnabled;
         const fs = anyWindow.fs = new FileSystem();
         anyWindow.localFileStorage = new LocalFileStorage(fs);
         anyWindow.clientConstants = Constants;

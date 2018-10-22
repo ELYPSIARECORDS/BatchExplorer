@@ -11,7 +11,7 @@ import {
 } from "@batch-flask/core";
 import { Activity, ActivityService } from "@batch-flask/ui/activity";
 import { Node, NodeState } from "app/models";
-import { Constants } from "app/utils";
+import { Constants } from "common";
 import { List } from "immutable";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
@@ -167,6 +167,14 @@ export class NodeService {
     public reimage(poolId: string, nodeId: string): Observable<any> {
         return this.http.post(`/pools/${poolId}/nodes/${nodeId}/reimage`, null);
 
+    }
+
+    public disableScheduling(poolId: string, nodeId: string): Observable<any> {
+        return this.http.post(`/pools/${poolId}/nodes/${nodeId}/disablescheduling`, null);
+    }
+
+    public enableScheduling(poolId: string, nodeId: string): Observable<any> {
+        return this.http.post(`/pools/${poolId}/nodes/${nodeId}/enablescheduling`, null);
     }
 
     public delete(poolId: string, nodeId: string): Observable<any> {

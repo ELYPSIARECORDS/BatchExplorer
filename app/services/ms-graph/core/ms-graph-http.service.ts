@@ -1,13 +1,12 @@
 import { HttpHandler } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { HttpService, ServerError } from "@batch-flask/core";
+import { ArmBatchAccount } from "app/models";
 import { AdalService } from "app/services/adal";
 import { BatchAccountService } from "app/services/batch-account";
-import { BatchExplorerService } from "app/services/batch-labs.service";
-import { AADUser } from "client/core/aad/adal/aad-user";
+import { BatchExplorerService } from "app/services/batch-explorer.service";
 import { Observable, throwError } from "rxjs";
 import { catchError, flatMap, retryWhen, shareReplay, take, tap } from "rxjs/operators";
-import { ArmBatchAccount } from "../../../models";
 
 /**
  * Class wrapping around the http service to call Microsoft Graph api
@@ -18,7 +17,6 @@ export class MsGraphHttpService extends HttpService {
         return this.batchExplorer.azureEnvironment.msGraph;
     }
 
-    private _currentUser: AADUser;
     constructor(
         httpHandler: HttpHandler,
         private adal: AdalService,
@@ -26,7 +24,6 @@ export class MsGraphHttpService extends HttpService {
         private batchExplorer: BatchExplorerService) {
 
         super(httpHandler);
-        this.adal.currentUser.subscribe(x => this._currentUser = x);
     }
 
     public request(method: any, uri?: any, options?: any): Observable<any> {

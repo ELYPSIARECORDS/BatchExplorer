@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2015",
-    "module": "commonjs",
+    "module": "esnext",
     "lib": [
       "dom",
       "dom.iterable",
@@ -20,19 +20,22 @@
     "moduleResolution": "node",
     "listEmittedFiles": true, // debug option
     "listFiles": true, // debug option
-    "outDir": "build/client",
     // Base Url only applies to typescript compilation so tsc knows where the modules are.
     // This means absolute path only works in the browser environment you need to use relative import for the code in side the client folder
     // Node.js doesn't support custom load path yet
     "baseUrl": ".",
     "noUnusedLocals": true,
     "paths": {
+      // "app/*": [
+      //   "app/*",
+      // ],
+      // "test/*": [
+      //   "test/*",
+      // ],
       "*": [
-        "*",
         "src/*",
-        "app/scripts/*"
+        "*",
       ],
-      // "@angular/*": ["../node_modules/@angular/*"]
     },
     "types": [
       "node",
@@ -53,6 +56,7 @@
     "app/**/*.ts",
     "src/**/*.ts",
     "test/**/*.ts",
+    "package.json",
   ],
   "exclude": [
     "**/testing/**/*",

@@ -4,6 +4,8 @@ import { MatDialog } from "@angular/material";
 import { By } from "@angular/platform-browser";
 import { RouterTestingModule } from "@angular/router/testing";
 import { FilterBuilder } from "@batch-flask/core";
+import { TelemetryTestingModule } from "@batch-flask/core/testing";
+import { ElectronTestingModule } from "@batch-flask/electron/testing";
 import { ActivityService } from "@batch-flask/ui/activity";
 import { BreadcrumbService } from "@batch-flask/ui/breadcrumbs";
 import { DialogService } from "@batch-flask/ui/dialogs";
@@ -12,11 +14,11 @@ import { SidebarManager } from "@batch-flask/ui/sidebar";
 import { QuickListTestingModule } from "@batch-flask/ui/testing";
 import { WorkspaceService } from "@batch-flask/ui/workspace";
 import { AccountListComponent } from "app/components/account/browse";
+import { LocationModule } from "app/components/common";
 import { BatchAccountService, SubscriptionService } from "app/services";
 import { List } from "immutable";
 import { of } from "rxjs";
 import * as Fixtures from "test/fixture";
-import { ElectronTestingModule } from "test/utils/mocks";
 import { NoItemMockComponent } from "test/utils/mocks/components";
 
 const sub1 = Fixtures.subscription.create({
@@ -61,7 +63,10 @@ describe("AccountListComponent", () => {
         };
 
         TestBed.configureTestingModule({
-            imports: [RouterTestingModule, QuickListTestingModule, ElectronTestingModule],
+            imports: [
+                RouterTestingModule, QuickListTestingModule,
+                ElectronTestingModule, TelemetryTestingModule, LocationModule,
+            ],
             declarations: [AccountListComponent, NoItemMockComponent],
             providers: [
                 { provide: BatchAccountService, useValue: accountService },

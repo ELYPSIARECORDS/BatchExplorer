@@ -9,7 +9,7 @@ import { AllTasksCompleteAction, Job, TaskFailureAction, UserAccount, VirtualMac
 import { JobCreateDto } from "app/models/dtos";
 import { createJobFormToJsonData, jobToFormModel } from "app/models/forms";
 import { JobService, PoolService } from "app/services";
-import { Constants } from "app/utils";
+import { Constants } from "common";
 import { List } from "immutable";
 import { Observable, of } from "rxjs";
 import { debounceTime, distinctUntilChanged, flatMap } from "rxjs/operators";
@@ -31,7 +31,6 @@ export class JobCreateBasicDialogComponent extends DynamicForm<Job, JobCreateDto
     public subtitle = null;
     public fileUri = "create.job.batch.json";
     public virtualMachineConfiguration: VirtualMachineConfiguration = null;
-    public containerSettingsRequired: boolean = true;
 
     constructor(
         public formBuilder: FormBuilder,
@@ -100,9 +99,6 @@ export class JobCreateBasicDialogComponent extends DynamicForm<Job, JobCreateDto
                     if (jobReleaseTask) {
                         jobReleaseTask.containerSettings = null;
                     }
-                    this.containerSettingsRequired = false;
-                } else {
-                    this.containerSettingsRequired = true;
                 }
 
                 this.userAccounts = pool.userAccounts;

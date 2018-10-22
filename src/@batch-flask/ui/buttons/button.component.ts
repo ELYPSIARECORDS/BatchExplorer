@@ -7,7 +7,7 @@ import {
     Injector,
     Input,
 } from "@angular/core";
-import { Observable } from "rxjs";
+import { Observable, isObservable } from "rxjs";
 
 import { log } from "@batch-flask/utils";
 
@@ -55,6 +55,8 @@ export class ButtonComponent extends ClickableComponent {
     @Input() @HostBinding("attr.color") public color: ButtonColor = "primary";
     @Input() public routerLink: string;
 
+    @HostBinding("attr.aria-label") public get ariaLabel() { return this.title; }
+
     public set status(value: SubmitStatus) {
         this._status = value;
         this.changeDetectionRef.markForCheck();
@@ -89,7 +91,7 @@ export class ButtonComponent extends ClickableComponent {
         this.status = SubmitStatus.Submitting;
 
         const obs = this.action(event);
-        if (!obs) {
+        if (!isObservable(obs)) {
             if (this.skipSuccess) {
                 this.status = SubmitStatus.Idle;
             } else {

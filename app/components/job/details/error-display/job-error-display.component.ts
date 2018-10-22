@@ -1,10 +1,9 @@
 import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
 import { Router } from "@angular/router";
 import { autobind } from "@batch-flask/core";
-
 import { ListFilterType } from "@batch-flask/ui/advanced-filter";
+import { DateUtils } from "@batch-flask/utils";
 import { Job, JobTerminateReason, NameValuePair, TaskState } from "app/models";
-import { DateUtils } from "app/utils";
 import { ODataFields } from "common/constants";
 import { of } from "rxjs";
 
@@ -25,7 +24,7 @@ export class JobErrorDisplayComponent {
 
     public get failureInfo() {
         const info = this.executionInfo;
-        return info && info.failureInfo;
+        return info && info.schedulingError;
     }
 
     public get jobFailed() {

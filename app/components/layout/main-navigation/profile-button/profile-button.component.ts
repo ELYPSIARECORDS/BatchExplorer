@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { I18nService, Locale, LocaleService, TranslatedLocales } from "@batch-flask/core";
-import { AutoUpdateService, ElectronRemote, ElectronShell, FileSystemService, UpdateStatus } from "@batch-flask/ui";
+import { AutoUpdateService, UpdateStatus } from "@batch-flask/electron";
+import { ElectronRemote, ElectronShell, FileSystemService } from "@batch-flask/ui";
 import {
     ContextMenu, ContextMenuItem, ContextMenuSeparator, ContextMenuService, MultiContextMenuItem,
 } from "@batch-flask/ui/context-menu";
@@ -10,6 +11,7 @@ import { OS } from "@batch-flask/utils";
 import {
     AdalService, BatchExplorerService,
 } from "app/services";
+import { Constants } from "common";
 import * as path from "path";
 import { Subscription } from "rxjs";
 
@@ -118,7 +120,7 @@ export class ProfileButtonComponent implements OnDestroy, OnInit {
     }
 
     private _openGithubIssues() {
-        this.shell.openExternal("https://github.com/Azure/BatchExplorer/issues");
+        this.shell.openExternal(Constants.ExternalLinks.submitIssue);
     }
 
     private _showAboutPage() {
@@ -151,7 +153,7 @@ export class ProfileButtonComponent implements OnDestroy, OnInit {
     }
 
     private _update() {
-        if (OS.isWindows()) {
+        if (!OS.isLinux()) {
             setImmediate(() => {
                 this.remote.electronApp.removeAllListeners("window-all-closed");
                 this.autoUpdateService.quitAndInstall();

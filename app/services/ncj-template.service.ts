@@ -1,17 +1,16 @@
 import { Injectable } from "@angular/core";
 import { FileSystemService } from "@batch-flask/ui";
+import { SecureUtils, log } from "@batch-flask/utils";
 import {
     Application,
     ApplicationAction,
     NcjJobTemplate,
     NcjPoolTemplate,
     NcjTemplateMode,
-    NcjTemplateType,
 } from "app/models";
 import { LocalFileStorage } from "app/services/local-file-storage.service";
-import { SecureUtils, log } from "app/utils";
 import { List } from "immutable";
-import * as loadJsonFile from "load-json-file";
+import loadJsonFile from "load-json-file";
 import { BehaviorSubject, Observable, from } from "rxjs";
 import { flatMap, map, share, shareReplay } from "rxjs/operators";
 import { GithubDataService } from "./github-data";
@@ -129,25 +128,6 @@ export class NcjTemplateService {
 
     public getPoolTemplate(applicationId: string, actionId: string): Observable<NcjPoolTemplate> {
         return this.get(`${applicationId}/${actionId}/pool.template.json`);
-    }
-
-    public async loadLocalTemplateFile(path: string) {
-        const json = await loadJsonFile(path).then((content) => {
-            return content;
-        }).catch((error) => {
-            return Promise.reject(`File is not valid json: ${error.message}`);
-        });
-
-        let templateType: NcjTemplateType;
-        if (json.job) {
-            templateType = NcjTemplateType.job;
-        } else if (json.pool) {
-            templateType = NcjTemplateType.pool;
-        } else {
-            templateType = NcjTemplateType.unknown;
-        }
-
-        return { type: templateType, template: json };
     }
 
     public addRecentSubmission(submission: RecentSubmissionParams) {
